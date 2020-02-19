@@ -1,0 +1,22 @@
+body{
+	background-color: white;
+	color: black;
+}
+div.content-wrap{
+	display: flex;
+	justify-content: space-between;
+}
+div.content-box{
+	width: 45%;
+}
+div.content2{
+	border: black 2px solid;
+	padding: 10px 15px;
+	overflow: hidden;
+	word-wrap: break-word;
+}
+div.header2{
+	margin-bottom: 10px;
+	text-align: left;
+}
+
