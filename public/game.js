@@ -139,6 +139,21 @@ function orderMake() {
 
 
 }
+$.ajax({
+    url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+    method: "GET", // HTTP 요청 메소드(GET, POST 등)
+    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+})
+    .done(function (results) {
+        let html = '';
+        html = results[0].answer_idx + '회차 당첨번호:' + results[0].num;
+        document.getElementById('jk').innerHTML = html;
+        let html2 = '';
+        html2 = (results[0].answer_idx + 1) + '회차';
+        document.getElementById('CLB').innerHTML = html2;
+    })
+
 
 function timer() {
     $.ajax({
@@ -149,10 +164,65 @@ function timer() {
     })
         .done(function (results) {
             if (results <= 10) {
-                document.getElementById('CL').innerHTML = '(쉬는시간)남은시간:' + (10 - results) + '초';
-            } else {
-                document.getElementById('CL').innerHTML = '(진행중)남은시간:' + (40 - results) + '초';
+                document.getElementById('CL').innerHTML = '(종료) break time:' + (10 - results) + '초';
+            } else if (results > 10) {
+                document.getElementById('CL').innerHTML = '(진행중):' + (40 - results) + '초';
             }
+        })
+        .done(function(results){
+        if (results == 0) {
+
+
+                $.ajax({
+                    url: "/answer2", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
+                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+                })
+                    .done(function (results) {
+                        let html = '';
+                        for (var i = 0; i < results.length; i++) {
+                            html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
+                        }
+                        document.getElementById('resultA').innerHTML = html;
+                    })
+
+                $.ajax({
+                    url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
+                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+                })
+                    .done(function (results) {
+                        let html = '';
+                        html = results[0].answer_idx + '회차 당첨번호:' + results[0].num;
+                        document.getElementById('jk').innerHTML = html;
+                        let html2 = '';
+                        html2 = results[0].answer_idx + '회차';
+                        document.getElementById('CLB').innerHTML = html2;
+                    })
+
+                $.ajax({
+                    url: "/happy", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
+                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+                })
+
+
+            }
+        })
+        .done(function (results) {
+            if(results == 10){
+                $.ajax({
+                    url: "/resettransaction", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
+                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+                })
+                document.getElementById('result').innerHTML = '';
+            }
+
         })
 }
 
@@ -162,65 +232,79 @@ function initTime() {
 
 timer();
 initTime();
-createAnswer();
-createAnswer2();
-
-
-function createAnswer() {
-    $.ajax({
-        url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-    })
-        .done(function (results) {
-            let html = '';
-            html = results[0].answer_idx + '회차 당첨번호:' + results[0].num;
-            document.getElementById('jk').innerHTML = html;
-        })
-}
-function a(){
-    if (Math.floor(+new Date() / 1000) % 40 === 0){
-        createAnswer();
-        setInterval(createAnswer,40000);
-    }
-}
-
-myVar=setInterval(a,1000);
-if(Math.floor(+new Date() / 1000) % 40 === 0){
-    clearInterval(myVar);
-}
-
-function createAnswer2() {
-    $.ajax({
-        url: "/answer2", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-    })
-        .done(function (results) {
-            let html = '';
-            for (var i = 0; i < results.length; i++) {
-                html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
-            }
-            document.getElementById('resultA').innerHTML = html;
-        })
-
-
-}
-
-function b(){
-    if (Math.floor(+new Date() / 1000) % 40 === 0){
-        createAnswer2();
-        setInterval(createAnswer2,40000);
-    }
-}
-myVar2=setInterval(b,1000);
-
-if(Math.floor(+new Date() / 1000) % 40 === 0){
-
-    clearInterval(myVar2);
-}
+// createAnswer();
+// createAnswer2();
+// checkRanking();
+//
+// function createAnswer() {
+//     $.ajax({
+//         url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
+//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+//     })
+//         .done(function (results) {
+//             let html = '';
+//             html = results[0].answer_idx + '회차 당첨번호:' + results[0].num;
+//             document.getElementById('jk').innerHTML = html;
+//         })
+// }
+//
+// function a() {
+//     if (Math.floor(+new Date() / 1000) % 40 === 0) {
+//         createAnswer();
+//         setInterval(createAnswer, 40000);
+//     }
+// }
+//
+// myVar = setInterval(a, 1000);
+// if (Math.floor(+new Date() / 1000) % 40 === 0) {
+//     clearInterval(myVar);
+// }
+//
+// function createAnswer2() {
+//     $.ajax({
+//         url: "/answer2", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
+//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+//     })
+//         .done(function (results) {
+//             let html = '';
+//             for (var i = 0; i < results.length; i++) {
+//                 html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
+//             }
+//             document.getElementById('resultA').innerHTML = html;
+//         })
+//
+//
+// }
+//
+// function b() {
+//     if (Math.floor(+new Date() / 1000) % 40 === 0) {
+//         createAnswer2();
+//         setInterval(createAnswer2, 40000);
+//     }
+// }
+//
+// myVar2 = setInterval(b, 1000);
+//
+// if (Math.floor(+new Date() / 1000) % 40 === 0) {
+//
+//     clearInterval(myVar2);
+//     checkRanking();
+//     setInterval(checkRanking, 40000);
+// }
+//
+//
+// function checkRanking() {
+//     $.ajax({
+//         url: "/happy", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
+//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
+//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+//     })
+// }
 
 
 
