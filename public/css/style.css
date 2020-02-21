@@ -4,10 +4,10 @@ body{
 }
 div.content-wrap{
 	display: flex;
-	justify-content: space-between;
+
 }
 div.content-box{
-	width: 45%;
+
 }
 div.content2{
 	border: black 2px solid;
@@ -18,5 +18,9 @@ div.content2{
 div.header2{
 	margin-bottom: 10px;
 	text-align: left;
+}
+#resultRanking{
+	color: blue;
+	font-size: larger;
 }
 

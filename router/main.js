@@ -51,7 +51,7 @@ module.exports = function (app) {
             // console.log(results[0].password);
             if (users.password == results[0].password) {
                 var id = results[0].idx;//로그인한 아이디의 인덱스 어떻게 전해줄것인가?
-                res.redirect(`http://192.168.0.34:5000/game?id=${id}`);
+                res.redirect(`http://localhost:5000/game?id=${id}`);
 
             }
         });
@@ -102,6 +102,17 @@ module.exports = function (app) {
         })
 
     })
+    app.get('/getBalance',function (req,res) {
+        let id = req.query.id;
+        let sql = `select money from bank where id=${id}`
+        db.query(sql, function (error, result) {
+            if (error) {
+                throw error;
+            }
+            res.send(result);
+        })
+
+    })
 
     app.get('/happy', async function (req, res) {
 
@@ -144,9 +155,12 @@ module.exports = function (app) {
 
         await returnResult(sql2)
             .then(function (data) {
-                data2 = data;
+
+                    data2=data;
+
             })
             .catch((err) => console.log(err));
+
 
         await returnResult(sql3)
             .then(function (data) {
@@ -162,11 +176,14 @@ module.exports = function (app) {
         let count2 = 0;
         let count3 = 0;
         let count = 0;
+        let countarray = [[],[]];
+
 
 
         for (s = 0; s < data2[0].contracts_idx; s++) {
             count = compareArray(data1[0].num.split(','), data3[s].num.split(','));
-            console.log(count);
+            countarray[0][s] = data3[s].id;
+            countarray[1][s] = count;
             if (count === 6) {
                 _1th[count1++] = data3[s].id;
             } else if (count === 5) {
@@ -175,12 +192,11 @@ module.exports = function (app) {
                 _3th[count3++] = data3[s].id;
             }
         }
-        console.log('here');
+        res.send(countarray);
         _1th = _1th.toString();
         _2th = _2th.toString();
         _3th = _3th.toString();
         let data4 = null;
-        let data5 = null;
         let sql4 = `insert into ranking_results(answer_idx,1th,2th,3th) values('${data1[0].answer_idx}','${_1th}','${_2th}','${_3th}')`
         await returnResult(sql4)
             .then(function (data) {
@@ -188,25 +204,21 @@ module.exports = function (app) {
             })
             .catch((err) => console.log(err));
 
-        // let sql5 = `truncate table contracts`
-        // await returnResult(sql5)
-        //     .then(function(data){
-        //         data5 = data;
-        //
-        //     })
-        //     .catch((err) =>console.log(err));
-
-
-
-
     });
-    app.get('/resettransaction',function (req,res){
+    app.get('/resettransaction', function (req, res) {
         let sql5 = `truncate table contracts`;
         db.query(sql5, function (error, result) {
             if (error) {
                 throw error;
             }
         })
+        let sql6 = `insert into contracts(id,num) values(0,'[0,0,0,0,0,0]') `;
+        db.query(sql6, function (error, result) {
+            if (error) {
+                throw error;
+            }
+        })
+
     })
 
 
@@ -225,7 +237,7 @@ module.exports = function (app) {
             let lotto = [];
             let i = 0;
             while (i < 6) {
-                let n = Math.floor(Math.random() * 50) + 1;
+                let n = Math.floor(Math.random() * 20) + 1;
                 if (!sameNum(n)) {
                     lotto.push(n);
                     i++;
@@ -263,7 +275,7 @@ module.exports = function (app) {
         let lotto = [];
         let i = 0;
         while (i < 6) {
-            let n = Math.floor(Math.random() * 50) + 1;
+            let n = Math.floor(Math.random() * 20) + 1;
             if (!sameNum(n)) {
                 lotto.push(n);
                 i++;
@@ -295,6 +307,18 @@ module.exports = function (app) {
             }
             res.send(result);
         })
+        var sqlC = `update bank set money = money-1000 where id=${id}`;
+        db.query(sqlC, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
+        var sqlC2 = `update bank set money = money+1000 where id=0`;
+        db.query(sqlC2, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
 
 
     });
@@ -324,6 +348,17 @@ module.exports = function (app) {
             res.send(results);
         })
     })
+    app.get('/checkRanking',function (req,res) {
+        let answer_idx = req.query.answer_idx;
+        let sqlCR = `select 1th,2th,3th from ranking_results where answer_idx=${answer_idx}`
+        db.query(sqlCR, function (error, results) {
+            if (error) {
+                throw error;
+            }
+            // console.log(results[0]['1th']);
+            res.send(results);
+        })
+    })
     app.get('/checkInfoRR', function (req, res) {
         let answer_idx = req.query.answer_idx;
         var sqlR = `select num from answer where answer_idx=${answer_idx}`
@@ -341,6 +376,19 @@ module.exports = function (app) {
             "id": id,
             "num": num
         }
+        var sqlC = `update bank set money = money-1000 where id=${id}`;
+        db.query(sqlC, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
+        var sqlC2 = `update bank set money = money+1000 where id=0`;
+        db.query(sqlC2, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
+
 
         var sql = `insert into contracts(id,num) values('${contracts.id}','${contracts.num}')`;
         db.query(sql, contracts, function (error) {

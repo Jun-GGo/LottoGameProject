@@ -13,47 +13,69 @@
 </head>
 <body>
 
-<h1 style="width: 45%;display: inline-block ">로또게임</h1>
-<h1 id="CLB" style="display: inline-block;text-align: right"></h1>
-<h1  id="CL"style="display: inline-block;text-align: right"></h1>
+<h1 style="width: 30%;display: inline-block ">로또게임</h1>
+<h3 style="display: inline-block;margin-left: 600px;width: 15%;">
+    <div id="mycoin"></div>
+</h3>
 <br>
-<h1 id="jk" ></h1>
-<h2>게임방법</h2>
-<ol>
-    <li>이 게임은 10분에 한번씩 당첨번호가 생성된다</li>
-    <li>1~50까지의 숫자중 6개를 고른다</li>
-    <li>(단 중복불가능)</li>
-    <li>생성하기버튼을 누르면 결제가 진행된다(랜덤발급버튼을 누르면 랜덤으로 번호를 생성해서 부여받음)</li>
-    <li>맞춘개수에 따라 차등으로 3등까지 돈이 지급된다</li>
-    <li>(단 공동등수일 경우 돈은 나눠서 분배된다)</li>
+<h1 id="CLB" style="display: inline-block;text-align: center"></h1>
+<h1 id="CL" style="display: inline-block;text-align: center"></h1>
 
-</ol>
+<br>
+<h1 style="display: inline-block;width: 60%" id="jk"></h1>
+
+
+
+<h2 onclick="if(plain.style.display=='none'){plain.style.display=''}else {plain.style.display='none'}"> 게임방법(궁금하면
+    클릭)</h2>
+<div id="plain" style="display: none">
+    <ol>
+        <li>이 게임은 10분에 한번씩 당첨번호가 생성된다</li>
+        <li>1~20까지의 숫자중 중복되지 않는 숫자 6개를 고른다</li>
+
+        <li>자신이 선택한 숫자를 입력 후 생성하기 버튼을 누르면 결제가 진행된다</li>
+        <li>랜덤발급 버튼을 누르면 랜덤으로 번호를 생성해서 결제가 진행된다</li>
+        <li>맞춘개수에 따라 차등으로 3등까지 돈이 지급된다</li>
+        <li>(단 공동등수일 경우 돈은 나눠서 분배된다)</li>
+        <li>1등:전체대금의 70%</li>
+        <li>2등:전체대금의 20%</li>
+        <li>3등:전체대금의 10%</li>
+
+    </ol>
+</div>
 <br>
 <br>
-<input type="text" id="1" style="width: 30px" onkeypress="inNumber();"/>
-<input type="text" id="2" style="width: 30px" onkeypress="inNumber();"/>
-<input type="text" id="3" style="width: 30px" onkeypress="inNumber();"/>
-<input type="text" id="4" style="width: 30px" onkeypress="inNumber();"/>
-<input type="text" id="5" style="width: 30px" onkeypress="inNumber();"/>
-<input type="text" id="6" style="width: 30px" onkeypress="inNumber();"/>
-<button onclick="orderMake()">생성</button>
-<button onclick="randomMake()">랜덤생성</button>
-<br>
-<br>
+<div id="change">
+    <input type="text" id="1" style="width: 30px" onkeypress="inNumber();"/>
+    <input type="text" id="2" style="width: 30px" onkeypress="inNumber();"/>
+    <input type="text" id="3" style="width: 30px" onkeypress="inNumber();"/>
+    <input type="text" id="4" style="width: 30px" onkeypress="inNumber();"/>
+    <input type="text" id="5" style="width: 30px" onkeypress="inNumber();"/>
+    <input type="text" id="6" style="width: 30px" onkeypress="inNumber();"/>
+    <button onclick="orderMake()">생성</button>
+    <button onclick="randomMake()">랜덤생성</button>
+</div>
+<div id="resultRanking" style="width: 25%"></div>
 <br>
 <br>
 
 <div class="content-wrap">
 
-    <div class="content-box">
+    <div class="content-box" style="width: 40%">
         <div class="header2">구매내역</div>
         <div class="content2">
             <div id="result"></div>
         </div>
     </div>
+    <div class="content-box" style="width: 7%">
+        <div class="header2">맞은개수</div>
+        <div class="content2">
+            <div id="resultN" style="color: red"></div>
+        </div>
+    </div>
 
 
-    <div class="content-box">
+    <div class="content-box" style="width: 45%;margin-left: 7%">
         <div class="header2">당첨 결과</div>
         <div class="content2">
             <div id="resultA"></div>
@@ -63,7 +85,7 @@
             <div class="header2">당첨 번호 검색</div>
             <input type="text" id="a" style="width: 30px" onkeypress="inNumber();"/>회차
             <button onclick="searchR()">검색</button>
-            <div class="content2" >
+            <div class="content2">
                 <div id="b"></div>
             </div>
 
@@ -71,8 +93,8 @@
         <br>
         <div class="header2">등수 확인</div>
         <input type="text" id="c" style="width: 30px" onkeypress="inNumber();"/>회차
-        <button onclick="searchR()">검색</button>
-<!--        search함수말고 새로 만들어야함-->
+        <button onclick="checkRanking()">검색</button>
+        <!--        search함수말고 새로 만들어야함-->
         <div class="content2">
             <div id="d"></div>
         </div>
