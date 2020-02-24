@@ -6,45 +6,122 @@ function S_GET(id) {
 function getBalance() {
     let param = S_GET('id');
     $.ajax({
-        url: "/getBalance", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {id: param}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/getBalance",
+        data: {id: param},
+        method: "GET",
+
     })
         .done(function (result) {
-            console.log(result[0].money);
-            document.getElementById('mycoin').innerHTML='내 코인:' +result[0].money
+            document.getElementById('mycoin').innerHTML = '내 코인1:' + result[0].money
+        })
+
+
+}
+
+getBalance();
+
+function getAccumulated() {
+    $.ajax({
+        url: "/getAccumulated",
+        data: {},
+        method: "GET",
+
+    })
+        .done(function (result) {
+            document.getElementById('accumulated').innerHTML = '모인 돈:' + result[0].money
+
         })
 
 }
-getBalance();
+
+getAccumulated();
+
+function orderMake() {
+    let param = S_GET('id');
+    let num = [];
+    if (userInput() === false)
+        return false
+    else
+        num = userInput();
+    $.ajax({
+        url: "/getBalance",
+        data: {id: param},
+        method: "GET",
+
+    })
+        .done(function (result) {
+            if (result[0].money > 0) {
+                $.ajax({
+                    url: "/makeOrder",
+                    data: {
+                        id: param,
+                        num: num
+                    },
+                    method: "GET",
+
+                })
+                    .done(function (result) {
+                        let html = '';
+                        for (var i = 0; i < result.length; i++) {
+                            html += "<br>" + result[i].num + "<br>";
+                        }
+                        document.getElementById('result').innerHTML = html;
+                        getBalance();
+                        getAccumulated();
+                    })
+            } else {
+                alert('돈이 부족합니다ㅜㅜ 돈을 충전해주세요!');
+            }
+        })
+
+
+}
+
 function randomMake() {
     let param = S_GET('id');
     $.ajax({
-        url: "/makeRandom", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {id: param}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/getBalance",
+        data: {id: param},
+        method: "GET",
+
     })
         .done(function (result) {
-            let html = '';
-            for (var i = 0; i < result.length; i++) {
-                html += "<br>" + result[i].num + "<br>";
+            if (result[0].money > 0) {
+
+                $.ajax({
+                    url: "/makeRandom",
+                    data: {id: param},
+                    method: "GET",
+
+                })
+                    .done(function (result) {
+                        let html = '';
+                        for (var i = 0; i < result.length; i++) {
+                            html += "<br>" + result[i].num + "<br>";
+                        }
+                        document.getElementById('result').innerHTML = html;
+                        getBalance();
+                        getAccumulated();
+
+                    })
+
+            } else {
+                alert('돈이 부족합니다ㅜㅜ 돈을 충전해주세요!');
             }
-            document.getElementById('result').innerHTML = html;
         })
-    getBalance();
+
+
 }
 
 function initPageC() {
     let param = S_GET('id');
     $.ajax({
-        url: "/checkInfoC", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
+        url: "/checkInfoC",
         data: {
             id: param
-        }, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        },
+        method: "GET",
+
     })
         .done(function (result) {
             let html = '';
@@ -60,10 +137,10 @@ function initPageC() {
 
 function initPageR() {
     $.ajax({
-        url: "/checkInfoR", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/checkInfoR",
+        data: {},
+        method: "GET",
+
     })
         .done(function (results) {
             let html = '';
@@ -81,47 +158,48 @@ function searchR() {
     let A = document.getElementById('a').value;
 
     $.ajax({
-        url: "/checkInfoRR", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {answer_idx: A}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/checkInfoRR",
+        data: {answer_idx: A},
+        method: "GET",
+
     })
         .done(function (results) {
             document.getElementById('b').innerHTML = results[0].num;
 
         })
 }
-function checkRanking(){
+
+function checkRanking() {
     let param = S_GET('id');
     let C = document.getElementById('c').value;
     $.ajax({
-        url: "/checkRanking", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {answer_idx: C}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/checkRanking",
+        data: {answer_idx: C},
+        method: "GET",
+
     })
         .done(function (results) {
-            let count1=0;
-            let count2=0;
-            let count3=0;
-            let _1th=results[0]['1th'].split(',');
-            let _2th=results[0]['2th'].split(',');
-            let _3th=results[0]['3th'].split(',');
-            for(let i=0;i<_1th.length;i++){
-                if(param ==_1th[i])
-                    count1 ++;
+            let count1 = 0;
+            let count2 = 0;
+            let count3 = 0;
+            let _1th = results[0]['1th'].split(',');
+            let _2th = results[0]['2th'].split(',');
+            let _3th = results[0]['3th'].split(',');
+            for (let i = 0; i < _1th.length; i++) {
+                if (param == _1th[i])
+                    count1++;
             }
-            for(let i=0;i<_2th.length;i++){
-                if(param ==_2th[i])
-                    count2 ++;
+            for (let i = 0; i < _2th.length; i++) {
+                if (param == _2th[i])
+                    count2++;
             }
-            for(let i=0;i<_3th.length;i++){
-                if(param ==_3th[i])
-                    count3 ++;
+            for (let i = 0; i < _3th.length; i++) {
+                if (param == _3th[i])
+                    count3++;
             }
 
 
-            let html2 = '1등: '+count1+'개 2등: '+count2+'개 3등 '+count3+'개';
+            let html2 = '1등: ' + count1 + '개 2등: ' + count2 + '개 3등 ' + count3 + '개';
             document.getElementById('d').innerHTML = html2;
 
         })
@@ -160,43 +238,15 @@ function userInput() {
         }
 
     }
-
-
     return num;
 }
 
-function orderMake() {
-    let param = S_GET('id');
-    let num = [];
-    if (userInput() === false)
-        return false
-    else
-        num = userInput();
-    $.ajax({
-        url: "/makeOrder", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {
-            id: param,
-            num: num
-        }, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-    })
-        .done(function (result) {
-            let html = '';
-            for (var i = 0; i < result.length; i++) {
-                html += "<br>" + result[i].num + "<br>";
-            }
-            document.getElementById('result').innerHTML = html;
-        })
-    getBalance();
 
-
-}
 $.ajax({
-    url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-    method: "GET", // HTTP 요청 메소드(GET, POST 등)
-    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+    url: "/answer",
+    data: {},
+    method: "GET",
+
 })
     .done(function (results) {
         let html = '';
@@ -207,106 +257,220 @@ $.ajax({
         document.getElementById('CLB').innerHTML = html2;
     })
 
+function sendCoin(to, money) {
+    let param = S_GET('id');
+    $.ajax({
+        url: "/sendcoin",
+        data: {
+            from: param,
+            to: to,
+            money: money
+        },
+        method: "GET",
+
+    })
+        .done(function () {
+            getBalance();
+            getAccumulated();
+        })
+}
+
+function func1() {
+    $.ajax({
+        url: "/answer2",
+        data: {},
+        method: "GET",
+
+    })
+        .done(function (results) {
+            let html = '';
+            for (var i = 0; i < results.length; i++) {
+                html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
+            }
+            document.getElementById('resultA').innerHTML = html;
+        })
+
+    $.ajax({
+        url: "/answer",
+        data: {},
+        method: "GET",
+
+    })
+        .done(function (results) {
+            let html = '';
+            html = (results[0].answer_idx) + '회차 당첨번호:' + results[0].num;
+            document.getElementById('jk').innerHTML = html;
+            let html2 = '';
+            html2 = (results[0].answer_idx + 1) + '회차';
+            document.getElementById('CLB').innerHTML = html2;
+        })
+    let param = S_GET('id');
+    $.ajax({
+        url: "/happy",
+        data: {id: param},
+        method: "GET",
+
+    })
+        .done(function (results) {
+            let array = results;
+            let count4 = 0;
+            let count5 = 0;
+            let count6 = 0;
+            let _count4 = 0;
+            let _count5 = 0;
+            let _count6 = 0;
+
+            let html = '';
+            for (var i = 0; i < array[0].length; i++) {
+                if (array[1][i] == 4) {
+                    _count4++
+                    //3등 배
+                } else if (array[1][i] == 5) {
+                    _count5++;
+                } else if (array[1][i] == 6) {
+                    _count6++;
+                }
+
+                if (param == array[0][i]) {
+                    html += "<br>" + array[1][i] + "<br>";
+                    if (array[1][i] == 4) {
+                        count4++
+                        //3등 배
+                    } else if (array[1][i] == 5) {
+                        count5++;
+                    } else if (array[1][i] == 6) {
+                        count6++;
+                    }
+
+                }
+            }
+            document.getElementById('cr').innerHTML = '👆전체(1등: ' + _count6 + '명 2등: ' + count5 + '명 3등: ' + _count4 + '명)';
+
+            if (count6 != 0) {
+
+
+                $.ajax({
+                    url: "/distribute",
+                    data: {
+                        id: param,
+                        score: 1,
+                        count: count6,
+                        _count: _count6
+                    },
+                    method: "GET",
+
+                })
+
+
+
+
+                //돈가저오기
+                //돈계산하기
+                //돈보내기
+                //count6=0;
+
+            }
+            if (count5 != 0) {
+
+                $.ajax({
+                    url: "/distribute",
+                    data: {
+                        id: param,
+                        score: 2,
+                        count: count5,
+                        _count: _count5
+                    },
+                    method: "GET",
+
+                })
+
+
+
+
+            }
+            if (count4 != 0) {
+
+                $.ajax({
+                    url: "/distribute",
+                    data: {
+                        id: param,
+                        score: 3,
+                        count: count4,
+                        _count: _count4
+                    },
+                    method: "GET",
+
+                })
+
+
+
+            }
+
+
+            let html2 = '';
+            html2 = '내 등수(1등: ' + count6 + ' 개 2등: ' + count5 + '개 3등 ' + count4 + ')';
+            document.getElementById('resultN').innerHTML = html;
+            // console.log('html:'+html);
+            document.getElementById('resultRanking').innerHTML = html2;
+            // console.log(html2);
+        })
+}
+
+function distribute() {
+    let param = S_GET('id');
+    $.ajax({
+        url: "/distribute",
+        data: {id: param},
+        method: "GET",
+
+    })
+
+
+}
 
 function timer() {
+
     $.ajax({
-        url: "/timer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-        data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-        method: "GET", // HTTP 요청 메소드(GET, POST 등)
-        // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+        url: "/timer",
+        data: {},
+        method: "GET",
+
     })
         .done(function (results) {
             if (results <= 10) {
                 document.getElementById('CL').innerHTML = '(준비) break time:' + (10 - results) + '초';
+                document.querySelector('#change').style.visibility = 'hidden';
+                document.querySelector('#resultRanking').style.visibility = 'visible'
+
             } else if (results > 10) {
                 document.getElementById('CL').innerHTML = '(진행중):' + (40 - results) + '초';
-            }
-        })
-        .done(function(results){
-        if (results == 0) {
-            document.querySelector('#change').style.display='none';
-            document.querySelector('#resultRanking').style.display=''
-
-                $.ajax({
-                    url: "/answer2", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
-                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-                })
-                    .done(function (results) {
-                        let html = '';
-                        for (var i = 0; i < results.length; i++) {
-                            html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
-                        }
-                        document.getElementById('resultA').innerHTML = html;
-                    })
-
-                $.ajax({
-                    url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
-                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-                })
-                    .done(function (results) {
-                        let html = '';
-                        html = (results[0].answer_idx) + '회차 당첨번호:' + results[0].num;
-                        document.getElementById('jk').innerHTML = html;
-                        let html2 = '';
-                        html2 = (results[0].answer_idx+1) + '회차';
-                        document.getElementById('CLB').innerHTML = html2;
-                    })
-            let param = S_GET('id');
-                $.ajax({
-                    url: "/happy", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-                    data: {id: param}, // HTTP 요청과 함께 서버로 보낼 데이터
-                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
-                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-                })
-                    .done(function(results){
-                        let array = results;
-                        let count4=0;
-                        let count5=0;
-                        let count6=0;
-
-                        let html = '';
-                        for (var i = 0; i < array[0].length; i++) {
-                            if(param == array[0][i]){
-                                html += "<br>" + array[1][i] + "<br>";
-                                if(array[1][i]==4){
-                                    count4++
-                                    //3등 배
-                                }
-                                else if(array[1][i]==5){
-                                    count5++;
-                                }
-                                else if(array[1][i]==6){
-                                    count6++;
-                                }
-
-                            }
-                        }
-                        let html2='';
-                        html2 = '1등: '+count6+' 2등: '+count5+' 3등 '+count4;
-                        document.getElementById('resultN').innerHTML = html;
-                        document.getElementById('resultRanking').innerHTML =html2;
-                    })
-
-
+                document.querySelector('#change').style.visibility = 'visible';
+                document.querySelector('#resultRanking').style.visibility = 'hidden'
             }
         })
         .done(function (results) {
-            if(results == 10){
-                document.querySelector('#change').style.display='';
-                document.querySelector('#resultRanking').style.display='none'
+            if (results == 0) {
+                func1();
+            }
+        })
+        .done(function (results) {
+            if (results == 10) {
                 $.ajax({
-                    url: "/resettransaction", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-                    data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-                    method: "GET", // HTTP 요청 메소드(GET, POST 등)
-                    // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
+                    url: "/truncate",
+                    data: {},
+                    method: "GET",
+
                 })
+                    .done(function(){
+
+                    })
+            }
+        })
+
+        .done(function (results) {
+            if (results == 11) {
                 document.getElementById('result').innerHTML = '';
                 document.getElementById('resultN').innerHTML = '';
-
             }
 
         })
@@ -319,81 +483,6 @@ function initTime() {
 
 timer();
 initTime();
-// createAnswer();
-// createAnswer2();
-// checkRanking();
-//
-// function createAnswer() {
-//     $.ajax({
-//         url: "/answer", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
-//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-//     })
-//         .done(function (results) {
-//             let html = '';
-//             html = results[0].answer_idx + '회차 당첨번호:' + results[0].num;
-//             document.getElementById('jk').innerHTML = html;
-//         })
-// }
-//
-// function a() {
-//     if (Math.floor(+new Date() / 1000) % 40 === 0) {
-//         createAnswer();
-//         setInterval(createAnswer, 40000);
-//     }
-// }
-//
-// myVar = setInterval(a, 1000);
-// if (Math.floor(+new Date() / 1000) % 40 === 0) {
-//     clearInterval(myVar);
-// }
-//
-// function createAnswer2() {
-//     $.ajax({
-//         url: "/answer2", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
-//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-//     })
-//         .done(function (results) {
-//             let html = '';
-//             for (var i = 0; i < results.length; i++) {
-//                 html += "<br>" + results[i].answer_idx + '회차:' + results[i].num + "<br>";
-//             }
-//             document.getElementById('resultA').innerHTML = html;
-//         })
-//
-//
-// }
-//
-// function b() {
-//     if (Math.floor(+new Date() / 1000) % 40 === 0) {
-//         createAnswer2();
-//         setInterval(createAnswer2, 40000);
-//     }
-// }
-//
-// myVar2 = setInterval(b, 1000);
-//
-// if (Math.floor(+new Date() / 1000) % 40 === 0) {
-//
-//     clearInterval(myVar2);
-//     checkRanking();
-//     setInterval(checkRanking, 40000);
-// }
-//
-//
-// function checkRanking() {
-//     $.ajax({
-//         url: "/happy", // 클라이언트가 HTTP 요청을 보낼 서버의 URL 주소
-//         data: {}, // HTTP 요청과 함께 서버로 보낼 데이터
-//         method: "GET", // HTTP 요청 메소드(GET, POST 등)
-//         // dataType: "json" // 서버에서 보내줄 데이터의 타입 })
-//     })
-// }
-
-
 
 
 

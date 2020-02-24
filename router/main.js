@@ -102,7 +102,7 @@ module.exports = function (app) {
         })
 
     })
-    app.get('/getBalance',function (req,res) {
+    app.get('/getBalance', function (req, res) {
         let id = req.query.id;
         let sql = `select money from bank where id=${id}`
         db.query(sql, function (error, result) {
@@ -111,6 +111,96 @@ module.exports = function (app) {
             }
             res.send(result);
         })
+
+    })
+
+    app.get('/distribute', async function (req, res) {
+        function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+            debug:true;
+        }
+
+
+        let id = req.query.id;
+        let score = req.query.score;
+        let count = req.query.count;
+        let _count = req.query._count;
+        let data1 = null;
+        let sql = `select money from bank where id = 0`;
+        await returnResult(sql)
+            .then(function (data) {
+                if (score == 1)
+                    data1 = data[0].money / 10 * 7;
+                else if (score == 2)
+                    data1 = data[0].money /10 *2;
+                else if(score == 3)
+                    data1 = data[0].money /10 *1;
+
+                data1=data1/_count*count;
+            })
+            .catch((err) => console.log(err));
+
+        let sql2 = `update bank set money = money-${data1} where id=0`;
+        await returnResult(sql2);
+        let sql3 = `update bank set money = money+${data1} where id=${id}`;
+        await returnResult(sql3);
+        console.log(data1);
+
+
+
+
+
+
+
+    })
+
+
+    app.get('/sendcoin', function (req, res) {
+        let from = req.query.from;
+        let to = req.query.to;
+        let money = req.query.money;
+        db.query(`update bank set money = money-${money} where id=${from}`, function (error) {
+            if (error) {
+                throw error;
+            }
+        })
+        db.query(`update bank set money = money+${money} where id=${to}`, function (error) {
+            if (error) {
+                throw error;
+            }
+        })
+    })
+
+    app.get('/getAccumulated', function (req, res) {
+        let sql = `select money from bank where id=0`
+        db.query(sql, function (error, result) {
+            if (error) {
+                throw error;
+            }
+            res.send(result);
+        })
+
+    })
+    app.get('/truncate', function (req, res) {
+        let sql5 = `truncate table contracts`;
+        let sql6 = `insert into contracts(id,num) values(0,'[0,0,0,0,0,0]') `;
+        db.query(sql5, function (error, result) {
+            if (error) {
+                throw error;
+            }
+        })
+
+        db.query(sql6, function (error, result) {
+            if (error) {
+                throw error;
+            }
+        })
+
 
     })
 
@@ -156,7 +246,7 @@ module.exports = function (app) {
         await returnResult(sql2)
             .then(function (data) {
 
-                    data2=data;
+                data2 = data;
 
             })
             .catch((err) => console.log(err));
@@ -176,14 +266,14 @@ module.exports = function (app) {
         let count2 = 0;
         let count3 = 0;
         let count = 0;
-        let countarray = [[],[]];
-
+        let countarray = [[], []];
 
 
         for (s = 0; s < data2[0].contracts_idx; s++) {
             count = compareArray(data1[0].num.split(','), data3[s].num.split(','));
             countarray[0][s] = data3[s].id;
             countarray[1][s] = count;
+
             if (count === 6) {
                 _1th[count1++] = data3[s].id;
             } else if (count === 5) {
@@ -192,7 +282,6 @@ module.exports = function (app) {
                 _3th[count3++] = data3[s].id;
             }
         }
-        res.send(countarray);
         _1th = _1th.toString();
         _2th = _2th.toString();
         _3th = _3th.toString();
@@ -202,24 +291,12 @@ module.exports = function (app) {
             .then(function (data) {
                 data4 = data;
             })
+            .then(function (data) {
+                res.send(countarray);
+            })
             .catch((err) => console.log(err));
 
     });
-    app.get('/resettransaction', function (req, res) {
-        let sql5 = `truncate table contracts`;
-        db.query(sql5, function (error, result) {
-            if (error) {
-                throw error;
-            }
-        })
-        let sql6 = `insert into contracts(id,num) values(0,'[0,0,0,0,0,0]') `;
-        db.query(sql6, function (error, result) {
-            if (error) {
-                throw error;
-            }
-        })
-
-    })
 
 
     app.get('/timer', function (req, res) {
@@ -259,6 +336,41 @@ module.exports = function (app) {
                 }
             });
         }
+    })
+    app.get('/makeOrder', function (req, res) {
+        let id = req.query.id;
+        let num = req.query.num;
+        let contracts = {
+            "id": id,
+            "num": num
+        }
+
+
+        var sql = `insert into contracts(id,num) values('${contracts.id}','${contracts.num}')`;
+        db.query(sql, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
+        var sqlR = `select * from contracts where id=${contracts.id} order by contracts_idx DESC`
+        db.query(sqlR, contracts, function (error, result) {
+            if (error) {
+                throw error;
+            }
+            res.send(result);
+        })
+        var sqlC = `update bank set money = money-1000 where id=${id}`;
+        db.query(sqlC, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
+        var sqlC2 = `update bank set money = money+1000 where id=0`;
+        db.query(sqlC2, contracts, function (error) {
+            if (error) {
+                throw error;
+            }
+        });
     })
 
 
@@ -348,7 +460,7 @@ module.exports = function (app) {
             res.send(results);
         })
     })
-    app.get('/checkRanking',function (req,res) {
+    app.get('/checkRanking', function (req, res) {
         let answer_idx = req.query.answer_idx;
         let sqlCR = `select 1th,2th,3th from ranking_results where answer_idx=${answer_idx}`
         db.query(sqlCR, function (error, results) {
@@ -369,41 +481,7 @@ module.exports = function (app) {
             res.send(results);
         })
     })
-    app.get('/makeOrder', function (req, res) {
-        let id = req.query.id;
-        let num = req.query.num;
-        let contracts = {
-            "id": id,
-            "num": num
-        }
-        var sqlC = `update bank set money = money-1000 where id=${id}`;
-        db.query(sqlC, contracts, function (error) {
-            if (error) {
-                throw error;
-            }
-        });
-        var sqlC2 = `update bank set money = money+1000 where id=0`;
-        db.query(sqlC2, contracts, function (error) {
-            if (error) {
-                throw error;
-            }
-        });
 
-
-        var sql = `insert into contracts(id,num) values('${contracts.id}','${contracts.num}')`;
-        db.query(sql, contracts, function (error) {
-            if (error) {
-                throw error;
-            }
-        });
-        var sqlR = `select * from contracts where id=${contracts.id} order by contracts_idx DESC`
-        db.query(sqlR, contracts, function (error, result) {
-            if (error) {
-                throw error;
-            }
-            res.send(result);
-        })
-    })
 
 };
 
