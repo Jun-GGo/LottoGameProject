@@ -12,7 +12,7 @@ function getBalance() {
 
     })
         .done(function (result) {
-            document.getElementById('mycoin').innerHTML = '내 코인1:' + result[0].money
+            document.getElementById('mycoin').innerHTML = '내 코인:' + result[0].money
         })
 
 
@@ -50,7 +50,7 @@ function orderMake() {
 
     })
         .done(function (result) {
-            if (result[0].money > 0) {
+            if (result[0].money >= 1000) {
                 $.ajax({
                     url: "/makeOrder",
                     data: {
@@ -86,7 +86,7 @@ function randomMake() {
 
     })
         .done(function (result) {
-            if (result[0].money > 0) {
+            if (result[0].money >= 1000) {
 
                 $.ajax({
                     url: "/makeRandom",
@@ -255,25 +255,193 @@ $.ajax({
         let html2 = '';
         html2 = (results[0].answer_idx + 1) + '회차';
         document.getElementById('CLB').innerHTML = html2;
+
     })
 
-function sendCoin(to, money) {
+$.ajax({
+    url: "/getallranking",
+    data: {},
+    method: "GET",
+})
+    .done(function (data) {
+        let param = S_GET('id');
+        let count1 = 0;
+        let count2 = 0;
+        let count3 = 0;
+        let mycount1 = 0;
+        let mycount2 = 0;
+        let mycount3 = 0;
+
+
+        let _1th = data[0]['1th'].split(',');
+        let _2th = data[0]['2th'].split(',');
+        let _3th = data[0]['3th'].split(',');
+        if (!_1th[0]) {
+            count1 = 0;
+            mycount1 = 0;
+        } else {
+            count1 = _1th.length;
+            for (let i = 0; i < count1; i++) {
+                if (param == _1th[i])
+                    mycount1++;
+            }
+        }
+
+        if (!_2th[0]) {
+            count2 = 0;
+            mycount2 = 0;
+        } else {
+            count2 = _2th.length;
+            for (let i = 0; i < count2; i++) {
+                if (param == _2th[i])
+                    mycount2++;
+            }
+        }
+
+        if (!_3th[0]) {
+            count3 = 0;
+            mycount3 = 0;
+        } else {
+            count3 = _3th.length;
+            for (let i = 0; i < count3; i++) {
+                if (param == _3th[i])
+                    mycount3++;
+            }
+        }
+
+
+        let html2 = '👆전체(1등: ' + count1 + '명 2등: ' + count2 + '명 3등: ' + count3 + '명)';
+        document.getElementById('cr').innerHTML = html2;
+        let html3 = '내 등수(1등: ' + mycount1 + ' 개 2등: ' + mycount2 + '개 3등 ' + mycount3 + ')';
+
+        document.getElementById('resultRanking').innerHTML = html3;
+
+    })
+
+
+function getMoney(a, b) {
     let param = S_GET('id');
+    console.log(ajk);
+    if (++ajk > 3) {
+        window.location.reload();
+    }
+
     $.ajax({
-        url: "/sendcoin",
+        url: "/getmoney2",
         data: {
-            from: param,
-            to: to,
-            money: money
+            id: param,
+            idx: a,
+            money: b
         },
         method: "GET",
-
     })
-        .done(function () {
-            getBalance();
-            getAccumulated();
+    getBalance()
+    distribute();
+
+}
+
+let ajk = 0;
+
+function distribute() {
+    let param = S_GET('id');
+
+    $.ajax({
+        url: "/getmoney",
+        data: {id: param},
+        method: "GET",
+    })
+        .done(function (result) {
+            let html = '';
+            let html2 = '';
+            for (let i = 0; i < result.length; i++) {
+                if (result[i].completed == 1) {
+                    html += "<br>" + result[i].answer_idx + "회차 " + result[i].score + '등 ' + result[i].money+'        '+ "<button style='text-align: right' onclick=" + "getMoney(" + result[i].idx + "," + result[i].money + ")>받기</button>" + '<br>'
+                    // html += "<br>" + result[i].answer_idx + "회차 " + result[i].score + '등 ' + result[i].money + '<br>'
+                    // html2 += "<br>" + "<button onclick=" + "getMoney(" + result[i].idx + "," + result[i].money + "," + result[i].answer_idx + "," + result[i].score + ")>받기</button>" + "<br>";
+
+                }
+            }
+            document.getElementById('getmoney').innerHTML = html;
+            document.getElementById('getmoney2').innerHTML = html2;
         })
 }
+
+distribute();
+let param = S_GET('id');
+$.ajax({
+    url: "/happy2",
+    data: {id: param},
+    method: "GET",
+
+})
+    .done(function (results) {
+        let array = results;
+        let html = '';
+        for (var i = 0; i < array[0].length; i++) {
+            if (param == array[0][i]) {
+                html += "<br>" + array[1][i] + "<br>";
+            }
+        }
+        document.getElementById('resultN').innerHTML = html;
+    })
+
+
+//
+// let time = (Math.floor(+new Date() / 1000) % 40).toString();
+// if (time <= 10) {
+//     $.ajax({
+//         url: "/happy2",
+//         data: {id: param},
+//         method: "GET",
+//
+//     })
+//         .done(function (results) {
+//             let array = results;
+//             let count4 = 0;
+//             let count5 = 0;
+//             let count6 = 0;
+//             let _count4 = 0;
+//             let _count5 = 0;
+//             let _count6 = 0;
+//
+//             let html = '';
+//             for (var i = 0; i < array[0].length; i++) {
+//                 if (array[1][i] == 4) {
+//                     _count4++
+//                     //3등 배
+//                 } else if (array[1][i] == 5) {
+//                     _count5++;
+//                 } else if (array[1][i] == 6) {
+//                     _count6++;
+//                 }
+//
+//                 if (param == array[0][i]) {
+//                     html += "<br>" + array[1][i] + "<br>";
+//                     if (array[1][i] == 4) {
+//                         count4++
+//                         //3등 배
+//                     } else if (array[1][i] == 5) {
+//                         count5++;
+//                     } else if (array[1][i] == 6) {
+//                         count6++;
+//                     }
+//
+//                 }
+//             }
+//             document.getElementById('cr').innerHTML = '👆전체(1등: ' + _count6 + '명 2등: ' + count5 + '명 3등: ' + _count4 + '명)';
+//             let html2 = '';
+//             html2 = '내 등수(1등: ' + count6 + ' 개 2등: ' + count5 + '개 3등 ' + count4 + ')';
+//             document.getElementById('resultRanking').innerHTML = html2;
+//             let answer_idx = parseInt(document.getElementById('CLB').innerHTML);
+//             let arr = [_count6, _count5, _count4];
+//             let arr2 = [count6, count5, count4];
+//
+//             document.getElementById('resultN').innerHTML = html;
+//             // console.log('html:'+html);
+//             // console.log(html2);
+//         })
+// }
+
 
 function func1() {
     $.ajax({
@@ -345,88 +513,33 @@ function func1() {
                 }
             }
             document.getElementById('cr').innerHTML = '👆전체(1등: ' + _count6 + '명 2등: ' + count5 + '명 3등: ' + _count4 + '명)';
-
-            if (count6 != 0) {
-
-
-                $.ajax({
-                    url: "/distribute",
-                    data: {
-                        id: param,
-                        score: 1,
-                        count: count6,
-                        _count: _count6
-                    },
-                    method: "GET",
-
-                })
-
-
-
-
-                //돈가저오기
-                //돈계산하기
-                //돈보내기
-                //count6=0;
-
-            }
-            if (count5 != 0) {
-
-                $.ajax({
-                    url: "/distribute",
-                    data: {
-                        id: param,
-                        score: 2,
-                        count: count5,
-                        _count: _count5
-                    },
-                    method: "GET",
-
-                })
-
-
-
-
-            }
-            if (count4 != 0) {
-
-                $.ajax({
-                    url: "/distribute",
-                    data: {
-                        id: param,
-                        score: 3,
-                        count: count4,
-                        _count: _count4
-                    },
-                    method: "GET",
-
-                })
-
-
-
-            }
-
-
             let html2 = '';
             html2 = '내 등수(1등: ' + count6 + ' 개 2등: ' + count5 + '개 3등 ' + count4 + ')';
+            document.getElementById('resultRanking').innerHTML = html2;
+            let answer_idx = parseInt(document.getElementById('CLB').innerHTML);
+            let arr = [_count6, _count5, _count4];
+            let arr2 = [count6, count5, count4];
+
+            $.ajax({
+                url: "/distribute",
+                data: {
+                    id: param,
+                    answer_idx: answer_idx,
+                    arr: arr,
+                    arr2: arr2
+                },
+                method: "GET",
+
+            })
+
+
             document.getElementById('resultN').innerHTML = html;
             // console.log('html:'+html);
-            document.getElementById('resultRanking').innerHTML = html2;
             // console.log(html2);
         })
-}
-
-function distribute() {
-    let param = S_GET('id');
-    $.ajax({
-        url: "/distribute",
-        data: {id: param},
-        method: "GET",
-
-    })
-
 
 }
+
 
 function timer() {
 
@@ -441,29 +554,34 @@ function timer() {
                 document.getElementById('CL').innerHTML = '(준비) break time:' + (10 - results) + '초';
                 document.querySelector('#change').style.visibility = 'hidden';
                 document.querySelector('#resultRanking').style.visibility = 'visible'
+                document.querySelector('#resultN').style.visibility = 'visible'
+
 
             } else if (results > 10) {
                 document.getElementById('CL').innerHTML = '(진행중):' + (40 - results) + '초';
                 document.querySelector('#change').style.visibility = 'visible';
                 document.querySelector('#resultRanking').style.visibility = 'hidden'
+                document.querySelector('#resultN').style.visibility = 'hidden'
+
             }
         })
         .done(function (results) {
             if (results == 0) {
                 func1();
+            } else if (results == 1) {
+                distribute();
+                getAccumulated();
             }
         })
         .done(function (results) {
-            if (results == 10) {
+            if (results == 8) {
                 $.ajax({
                     url: "/truncate",
                     data: {},
                     method: "GET",
 
                 })
-                    .done(function(){
 
-                    })
             }
         })
 

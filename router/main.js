@@ -74,6 +74,35 @@ module.exports = function (app) {
         })
 
     })
+    app.get('/getallranking', async function (req, res) {
+        function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+            debug:true;
+        }
+
+        let data1 = null;
+        let data2 = null;
+
+        let sql1 = `select answer_idx from answer order by answer_idx DESC LIMIT 1`;
+
+        let sql3 = `select 1th,2th,3th from ranking_results where answer_idx=77`
+
+        await returnResult(sql1)
+            .then(function (data) {
+                data1 = data[0].answer_idx;
+            })
+        let sql2 = `select 1th,2th,3th from ranking_results where answer_idx=${data1}`
+        await returnResult(sql2)
+            .then((function (data) {
+                res.send(data);
+            }))
+    })
+
 
     app.get('/game', function (req, res) {
         res.render('game.html');
@@ -110,6 +139,7 @@ module.exports = function (app) {
                 throw error;
             }
             res.send(result);
+
         })
 
     })
@@ -127,36 +157,94 @@ module.exports = function (app) {
 
 
         let id = req.query.id;
-        let score = req.query.score;
-        let count = req.query.count;
-        let _count = req.query._count;
+
+        let answer_idx = req.query.answer_idx - 1;
+        let arrAll = req.query.arr;
+        let arrMe = req.query.arr2;
+        // console.log(arr);
         let data1 = null;
+        let data2 = null;
+        let data3 = null;
+        let sql2 = '';
+        let sql5 = '';
+        let sql6 = '';
         let sql = `select money from bank where id = 0`;
         await returnResult(sql)
             .then(function (data) {
-                if (score == 1)
-                    data1 = data[0].money / 10 * 7;
-                else if (score == 2)
-                    data1 = data[0].money /10 *2;
-                else if(score == 3)
-                    data1 = data[0].money /10 *1;
+                if (arrAll[0] > 0) {
+                    data1 = data[0].money / 10 * 7 / arrAll[0] * 1;
+                    data1 = Math.round(data1);
+                    console.log('data1:'+data1);
+                    sql2 = `update bank set money = money-${data1 * arrMe[0]} where id=0`;
+                }
+               if (arrAll[1] > 0) {
+                    data2 = data[0].money / 10 * 2 / arrAll[1] * 1;
+                    data2 = Math.round(data2);
+                    console.log('data2:'+data2);
+                    sql5 = `update bank set money = money-${data2 * arrMe[1]} where id=0`;
+                }
+               if (arrAll[2] > 0) {
+                    data3 = data[0].money / 10 * 1 / arrAll[2] * 1;
+                    data3 = Math.round(data3);
+                    console.log('data3:'+data3);
+                    sql6 = `update bank set money = money-${data3 * arrMe[2]} where id=0`;
+                }
 
-                data1=data1/_count*count;
+
             })
             .catch((err) => console.log(err));
 
-        let sql2 = `update bank set money = money-${data1} where id=0`;
-        await returnResult(sql2);
-        let sql3 = `update bank set money = money+${data1} where id=${id}`;
-        await returnResult(sql3);
-        console.log(data1);
+        if (arrAll[0] > 0) {
+            await returnResult(sql2);
+        }
+        if(arrAll[1] > 0)
+            await returnResult(sql5);
+        if(arrAll[2] > 0)
+            await returnResult(sql6);
+        // let sql6 = `insert into contracts(id,num) values(0,'[0,0,0,0,0,0]') `;
+        let sql3 = '';
+        for (let k = 0; k < arrMe[0]; k++) {
+            sql3 = `insert into getmoney(answer_idx,id,score,money,completed) values('${answer_idx}','${id}','1','${data1}','1')`
+            await returnResult(sql3);
+        }
+        for (let k = 0; k < arrMe[1]; k++) {
+            sql3 = `insert into getmoney(answer_idx,id,score,money,completed) values('${answer_idx}','${id}','2','${data2}','1')`
+            await returnResult(sql3);
+        }
+        for (let k = 0; k < arrMe[2]; k++) {
+            sql3 = `insert into getmoney(answer_idx,id,score,money,completed) values('${answer_idx}','${id}','3','${data3}','1')`
+            await returnResult(sql3);
+        }
 
 
+    })
 
+    app.get('/getmoney2', function (req, res) {
 
+        let id = req.query.id;
+        let idx = req.query.idx;
+        let money = req.query.money;
+        db.query(`update getmoney set completed = 0 where idx=${idx}`, function (error) {
+            if (error) {
+                throw error;
+            }
+        })
+        db.query(` update bank set money = money + ${money} where id = ${id}`, function (error) {
+            if (error) {
+                throw error;
+            }
+        })
+    })
 
-
-
+    app.get('/getmoney', function (req, res) {
+        let id = req.query.id;
+        db.query(`select * from getmoney where id=${id}`, function (error, result) {
+            if (error) {
+                throw error;
+                console.log(error);
+            }
+            res.send(result);
+        })
     })
 
 
@@ -203,6 +291,73 @@ module.exports = function (app) {
 
 
     })
+    app.get('/happy2', async function (req, res) {
+        function compareArray(a, b) {
+            count = 0;
+            for (let k = 0; k < 6; k++) {
+                for (let u = 0; u < 6; u++) {
+                    if (a[k] == b[u])
+                        count++;
+                }
+            }
+            return count;
+        }
+
+        function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+        }
+
+        let sql1 = `select * from answer order by answer_idx DESC LIMIT 1`;
+        let sql3 = 'select * from contracts';
+
+        let data1 = null;
+
+        let data3 = null;
+        await returnResult(sql1)
+            .then(function (data) {
+                data1 = data;
+            })
+            .catch((err) => console.log(err));
+
+
+        await returnResult(sql3)
+            .then(function (data) {
+                data3 = data;
+            })
+            .catch((err) => console.log(err));
+
+        let s = 0;
+        let _1th = [];
+        let _2th = [];
+        let _3th = [];
+        let count1 = 0;
+        let count2 = 0;
+        let count3 = 0;
+        let count = 0;
+        let countarray = [[], []];
+
+        for (s = 0; s < data3.length; s++) {
+            count = compareArray(data1[0].num.split(','), data3[s].num.split(','));
+            countarray[0][s] = data3[s].id;
+            countarray[1][s] = count;
+
+            if (count === 6) {
+                _1th[count1++] = data3[s].id;
+            } else if (count === 5) {
+                _2th[count2++] = data3[s].id;
+            } else if (count === 4) {
+                _3th[count3++] = data3[s].id;
+            }
+        }
+        await res.send(countarray);
+
+    });
+
 
     app.get('/happy', async function (req, res) {
 
@@ -297,6 +452,9 @@ module.exports = function (app) {
             .catch((err) => console.log(err));
 
     });
+    app.get('/timer2', function (req, res) {
+        res.send((Math.floor(+new Date() / 1000) % 40).toString());
+    })
 
 
     app.get('/timer', function (req, res) {
@@ -461,7 +619,7 @@ module.exports = function (app) {
         })
     })
     app.get('/checkRanking', function (req, res) {
-        let answer_idx = req.query.answer_idx;
+        let answer_idx = req.query.answer_idx - 1;
         let sqlCR = `select 1th,2th,3th from ranking_results where answer_idx=${answer_idx}`
         db.query(sqlCR, function (error, results) {
             if (error) {
