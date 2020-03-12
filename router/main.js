@@ -1,5 +1,9 @@
 var mysql = require('mysql');
-var axios = require('axios');
+const Web3 = require("web3");
+const axios = require('axios');
+var Tx = require('ethereumjs-tx').Transaction;
+const ethNetwork = 'https://ropsten.infura.io/v3/a0a975e16b6846af9c7af6b28767f23d';
+const web3 = new Web3(new Web3.providers.HttpProvider(ethNetwork));
 var db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -18,7 +22,7 @@ module.exports = function (app) {
         res.render('login.html');
     })
     app.post('/signup_success', function (req, res) {
-        // console.log(req.body);
+        console.log(req.body);
 
         var users = {
             "name": req.body.name,
@@ -26,18 +30,21 @@ module.exports = function (app) {
             "password": req.body.password,
             "birth_date": req.body.birth_date,
             "phone_number": req.body.phone_number,
-            "email": req.body.email
+            "email": req.body.email,
+            "address": req.body.address
         }
 
 
-        var sql = `insert into users(name,login_id,password,birth_date,phone_number,email) values('${users.name}','${users.login_id}','${users.password}','${users.birth_date}','${users.phone_number}','${users.email}')`;
+        var sql = `insert into users(name,login_id,password,birth_date,phone_number,email,address) values('${users.name}','${users.login_id}','${users.password}','${users.birth_date}','${users.phone_number}','${users.email[0]}','${users.email[1]}')`;
         db.query(sql, users, function (error) {
             if (error) {
                 res.send('회원가입 실패 다시 시도주세요');
+                console.log(error);
             } else
                 res.render('main.html');
         });
     });
+
 
     app.post('/login_success', function (req, res) {
         var users = {
@@ -174,19 +181,19 @@ module.exports = function (app) {
                 if (arrAll[0] > 0) {
                     data1 = data[0].money / 10 * 7 / arrAll[0] * 1;
                     data1 = Math.round(data1);
-                    console.log('data1:'+data1);
+                    console.log('data1:' + data1);
                     sql2 = `update bank set money = money-${data1 * arrMe[0]} where id=0`;
                 }
-               if (arrAll[1] > 0) {
+                if (arrAll[1] > 0) {
                     data2 = data[0].money / 10 * 2 / arrAll[1] * 1;
                     data2 = Math.round(data2);
-                    console.log('data2:'+data2);
+                    console.log('data2:' + data2);
                     sql5 = `update bank set money = money-${data2 * arrMe[1]} where id=0`;
                 }
-               if (arrAll[2] > 0) {
+                if (arrAll[2] > 0) {
                     data3 = data[0].money / 10 * 1 / arrAll[2] * 1;
                     data3 = Math.round(data3);
-                    console.log('data3:'+data3);
+                    console.log('data3:' + data3);
                     sql6 = `update bank set money = money-${data3 * arrMe[2]} where id=0`;
                 }
 
@@ -197,9 +204,9 @@ module.exports = function (app) {
         if (arrAll[0] > 0) {
             await returnResult(sql2);
         }
-        if(arrAll[1] > 0)
+        if (arrAll[1] > 0)
             await returnResult(sql5);
-        if(arrAll[2] > 0)
+        if (arrAll[2] > 0)
             await returnResult(sql6);
         // let sql6 = `insert into contracts(id,num) values(0,'[0,0,0,0,0,0]') `;
         let sql3 = '';
@@ -640,7 +647,278 @@ module.exports = function (app) {
         })
     })
 
+    async function getBalance(address) {
+        return new Promise((resolve, reject) => {
+            web3.eth.getBalance(address, async (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(web3.utils.fromWei(result, "ether"));
+            });
+        });
+    }
 
+
+    app.get('/exchangetoken', async function (req, res) {
+        let it = req.query.it;
+        let id = req.query.id
+        console.log(id);
+
+        async function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, async function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+        }
+
+        async function transferFund(sendersData, recieverData, amountToSend) {
+            return new Promise(async (resolve, reject) => {
+                await web3.eth.getBalance(sendersData.address, async (err, result) => {
+                    if (err) {
+                        return reject();
+                    }
+                    let balance = web3.utils.fromWei(result, "ether");
+                    console.log(balance + " ETH");
+                    if (balance < amountToSend) {
+                        console.log('insufficient funds');
+                        return reject();
+                    }
+                });
+                let nonce = await web3.eth.getTransactionCount(sendersData.address);
+
+
+                const txObject = {
+                    nonce: web3.utils.toHex(nonce),
+                    gasLimit: web3.utils.toHex(1000000),
+                    gasPrice: web3.utils.toHex(web3.utils.toWei('10', 'gwei')),
+                    to: recieverData.address,
+                    value: web3.utils.toHex(web3.utils.toWei(amountToSend.toString(), 'ether')),
+                    chainId: 3
+                };
+
+                const tx = new Tx(txObject, {chain: 'ropsten'});
+                tx.sign(sendersData.privateKey);
+
+                const serializedTx = tx.serialize();
+                const raw = '0x' + serializedTx.toString('hex');
+
+                web3.eth.sendSignedTransaction(raw)
+                    .once('transactionHash', (hash) => {
+                        console.info('transactionHash', 'https://ropsten.etherscan.io/tx' + hash);
+                    })
+                    .once('receipt', (receipt) => {
+                        console.info('receipt', receipt);
+                    }).on('error', console.error);
+
+
+            });
+        }
+
+        let sql1 = `select money from bank where id = ${id}`;
+        await returnResult(sql1)
+            .then(function (data) {
+                if (data < it) {
+                    res.send(false);
+                }
+            })
+            .catch((err) => console.log(err));
+        let sql2 = `update bank set money = money-${it} where id=${id}`;
+        await returnResult(sql2);
+        let sql3 = `select address from users where idx = ${id}`;
+        let address = null;
+        await returnResult(sql3)
+            .then(function (data) {
+                address = data[0].address;
+            })
+            .catch((err) => console.log(err));
+
+
+        console.log(address);
+        const send_account = '0xe22d47A2D82d3bE9B2aD8dfD9d900fa376De2B68';
+        const privateKey = Buffer.from('B80AA9B617383758FF2CD7B2E11E2828E9A960AC5EF49E34D0391EFB7091B752', 'hex');
+        await transferFund({
+            address: send_account,
+            privateKey: privateKey
+        }, {address: address}, it / 10000);
+
+    })
+    app.get('/exchangeether', async function (req,res){
+        let id = req.query.id
+
+        async function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, async function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+        }
+        let sql3 = `select address from users where idx = ${id}`;
+        let address = null;
+        await returnResult(sql3)
+            .then(function (data) {
+                address = data[0].address;
+                res.send(address);
+
+            })
+            .catch((err) => console.log(err));
+    })
+
+    app.get('/exchangeether_process', async function (req, res) {
+        let ie = req.query.ie;
+        let priKey = req.query.privateKey;
+        let id = req.query.id
+        console.log(id);
+
+        async function returnResult(sql) {
+            return new Promise(function (resolve, reject) {
+                db.query(sql, async function (error, results) {
+                    if (error) reject(error);
+                    resolve(results);
+                })
+            });
+        }
+
+        async function transferFund(sendersData, recieverData, amountToSend) {
+            return new Promise(async (resolve, reject) => {
+                await web3.eth.getBalance(sendersData.address, async (err, result) => {
+                    if (err) {
+                        return reject();
+                    }
+                    let balance = web3.utils.fromWei(result, "ether");
+                    console.log(balance + " ETH");
+                    if (balance < amountToSend) {
+                        console.log('insufficient funds');
+                        return reject();
+                    }
+                });
+                let nonce = await web3.eth.getTransactionCount(sendersData.address);
+
+
+                const txObject = {
+                    nonce: web3.utils.toHex(nonce),
+                    gasLimit: web3.utils.toHex(1000000),
+                    gasPrice: web3.utils.toHex(web3.utils.toWei('10', 'gwei')),
+                    to: recieverData.address,
+                    value: web3.utils.toHex(web3.utils.toWei(amountToSend.toString(), 'ether')),
+                    chainId: 3
+                };
+
+                const tx = new Tx(txObject, {chain: 'ropsten'});
+                tx.sign(sendersData.privateKey);
+
+                const serializedTx = tx.serialize();
+                const raw = '0x' + serializedTx.toString('hex');
+
+                web3.eth.sendSignedTransaction(raw)
+                    .once('transactionHash', (hash) => {
+                        console.info('transactionHash', 'https://ropsten.etherscan.io/tx' + hash);
+                    })
+                    .once('receipt', (receipt) => {
+                        console.info('receipt', receipt);
+                    }).on('error', console.error);
+
+
+            });
+        }
+
+
+        let sql3 = `select address from users where idx = ${id}`;
+        let address = null;
+        await returnResult(sql3)
+            .then(function (data) {
+                address = data[0].address;
+            })
+            .catch((err) => console.log(err));
+        let sql2 = `update bank set money = money+${ie*10000} where id=${id}`;
+        console.log('working')
+        await returnResult(sql2);
+
+
+
+
+        console.log('send_account:'+address);
+        const receive_account = '0xe22d47A2D82d3bE9B2aD8dfD9d900fa376De2B68';
+        const privateKey = Buffer.from(priKey, 'hex');
+        await transferFund({
+            address: address,
+            privateKey: privateKey
+        }, {address: receive_account}, ie);
+
+
+
+    })
+
+
+    app.get('/exchange', function (req, res) {
+        res.render('exchange.html');
+    })
+
+
+    app.get('/sendtx', async function (req, res) {
+        async function getBalance(address) {
+            return new Promise((resolve, reject) => {
+                web3.eth.getBalance(address, async (err, result) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve(web3.utils.fromWei(result, "ether"));
+                });
+            });
+        }
+
+
+        async function transferFund(sendersData, recieverData, amountToSend) {
+            return new Promise(async (resolve, reject) => {
+                await web3.eth.getBalance(sendersData.address, async (err, result) => {
+                    if (err) {
+                        return reject();
+                    }
+                    let balance = web3.utils.fromWei(result, "ether");
+                    console.log(balance + " ETH");
+                    if (balance < amountToSend) {
+                        console.log('insufficient funds');
+                        return reject();
+                    }
+                });
+                let nonce = await web3.eth.getTransactionCount(sendersData.address);
+
+
+                const txObject = {
+                    nonce: web3.utils.toHex(nonce),
+                    gasLimit: web3.utils.toHex(1000000),
+                    gasPrice: web3.utils.toHex(web3.utils.toWei('10', 'gwei')),
+                    to: recieverData.address,
+                    value: web3.utils.toHex(web3.utils.toWei(amountToSend.toString(), 'ether')),
+                    chainId: 3
+                };
+
+                const tx = new Tx(txObject, {chain: 'ropsten'});
+                tx.sign(sendersData.privateKey);
+
+                const serializedTx = tx.serialize();
+                const raw = '0x' + serializedTx.toString('hex');
+
+                web3.eth.sendSignedTransaction(raw)
+                    .once('transactionHash', (hash) => {
+                        console.info('transactionHash', 'https://ropsten.etherscan.io/tx' + hash);
+                    })
+                    .once('receipt', (receipt) => {
+                        console.info('receipt', receipt);
+                    }).on('error', console.error);
+
+
+            });
+        }
+
+        transferFund({
+            address: send_account,
+            privateKey: privateKey
+        }, {address: receive_account}, 0.10);
+
+    });
 };
 
 

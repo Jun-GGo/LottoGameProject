@@ -2,6 +2,7 @@ function S_GET(id) {
     var a = new RegExp(id + "=([^&#=]*)");
     return decodeURIComponent(a.exec(window.location.search)[1]);
 }
+let param3 = S_GET('id');
 
 function getBalance() {
     let param = S_GET('id');
